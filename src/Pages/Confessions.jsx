@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react"
 import api from "../api/api"
 import { FaTrashAlt } from "react-icons/fa"
@@ -9,7 +8,7 @@ export default function Confessions() {
   const [confessions, setConfessions] = useState([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('all')
-  const [expandedConfessions, setExpandedConfessions] = useState(new Set())
+  const [expandedIds, setExpandedIds] = useState({})
 
   const getConfessions = async () => {
     try{
@@ -39,15 +38,11 @@ export default function Confessions() {
     }
   }
 
-  const toggleExpanded = (id) => {
-    setExpandedConfessions(prev => {
-      const newSet = new Set(prev)
-      if (newSet.has(id)) {
-        newSet.delete(id)
-      } else {
-        newSet.add(id)
-      }
-      return newSet
+  const toggleExpanded = (confessionId) => {
+    setExpandedIds(prevState => {
+      const newState = { ...prevState }
+      newState[confessionId] = !newState[confessionId]
+      return newState
     })
   }
 
@@ -68,21 +63,13 @@ export default function Confessions() {
     return confessions
   }
 
-  const getTruncatedText = (text, id) => {
-    const isExpanded = expandedConfessions.has(id)
-    if (isExpanded || text.length <= 200) {
-      return text
-    }
-    return text.substring(0, 200) + '...'
-  }
-
   useEffect(() => {
     getConfessions()
   }, [])
 
   return(
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-gray-900 mb-3">
             All Confessions
@@ -161,44 +148,76 @@ export default function Confessions() {
                 </Link>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {getFilteredConfessions().map((confession) => (
-                  <div
-                    key={confession._id}
-                    className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow p-6"
-                  >
-                    <div className="flex items-start justify-between mb-3">
-                      <h3 className="text-xl font-semibold text-gray-900 flex-1">
-                        {confession.title}
-                      </h3>
-                      <button
-                        onClick={() => handleDelete(confession._id)}
-                        className="flex-shrink-0 p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-all"
-                        title="Delete confession"
-                      >
-                        <FaTrashAlt />
-                      </button>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {getFilteredConfessions().map((confession) => {
+                  const isExpanded = expandedIds[confession._id] || false
+                  const shouldTruncate = confession.body.length > 200
+                  const displayText = isExpanded || !shouldTruncate 
+                    ? confession.body 
+                    : confession.body.substring(0, 200) + '...'
+
+                  return (
+                    <div
+                      key={confession._id}
+                      className="group bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 hover:border-indigo-200 transform hover:-translate-y-1"
+                    >
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex-1">
+                          <div className="inline-block px-3 py-1 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-full mb-3">
+                            <span className="text-xs font-semibold text-indigo-600">Confession</span>
+                          </div>
+                          <h3 className="text-xl font-bold text-gray-900 leading-tight group-hover:text-indigo-600 transition-colors">
+                            {confession.title}
+                          </h3>
+                        </div>
+                        <button
+                          onClick={() => handleDelete(confession._id)}
+                          className="flex-shrink-0 p-2.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-all duration-200 hover:scale-110"
+                          title="Delete confession"
+                        >
+                          <FaTrashAlt className="w-4 h-4" />
+                        </button>
+                      </div>
+
+                      <div className="relative mb-4">
+                        <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+                          {displayText}
+                        </p>
+                        {!isExpanded && shouldTruncate && (
+                          <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-white to-transparent pointer-events-none"></div>
+                        )}
+                      </div>
+
+                      {shouldTruncate && (
+                        <button
+                          onClick={() => toggleExpanded(confession._id)}
+                          className="inline-flex items-center gap-1 text-indigo-600 hover:text-indigo-700 font-semibold text-sm mb-4 hover:gap-2 transition-all"
+                        >
+                          {isExpanded ? (
+                            <>Show less ↑</>
+                          ) : (
+                            <>Read more →</>
+                          )}
+                        </button>
+                      )}
+
+                      <div className="flex items-center justify-between text-sm pt-4 border-t border-gray-200">
+                        <div className="flex items-center gap-2 text-gray-500">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          <span className="text-xs">{formatDate(confession.createdAt)}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 rounded-full bg-gradient-to-r from-indigo-400 to-purple-400 flex items-center justify-center text-white text-xs font-bold">
+                            A
+                          </div>
+                          <span className="font-semibold text-gray-700 text-xs">Anonymous</span>
+                        </div>
+                      </div>
                     </div>
-
-                    <p className="text-gray-700 mb-4 whitespace-pre-wrap">
-                      {getTruncatedText(confession.body, confession._id)}
-                    </p>
-
-                    {confession.body.length > 200 && (
-                      <button
-                        onClick={() => toggleExpanded(confession._id)}
-                        className="text-indigo-600 hover:text-indigo-700 font-medium text-sm mb-4"
-                      >
-                        {expandedConfessions.has(confession._id) ? 'Show less' : 'Read more →'}
-                      </button>
-                    )}
-
-                    <div className="flex items-center justify-between text-sm text-gray-500 pt-4 border-t border-gray-100">
-                      <span>{formatDate(confession.createdAt)}</span>
-                      <span className="font-medium">Anonymous</span>
-                    </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             )}
           </>

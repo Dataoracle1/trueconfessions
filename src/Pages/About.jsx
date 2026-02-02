@@ -129,27 +129,8 @@ export default function About() {
                         </div>
                     </div>
                 </div>
-
-        
-                <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 rounded-2xl shadow-xl overflow-hidden">
-                    <div className="px-8 py-12 text-center">
-                        <h2 className="text-3xl font-bold text-white mb-4">
-                            Ready to Share Your Story?
-                        </h2>
-                        <p className="text-lg text-indigo-100 mb-8 max-w-2xl mx-auto">
-                            Join thousands of people who have found comfort, connection, and understanding through Confessions.
-                        </p>
-                        <div className="flex items-center justify-center gap-4">
-                            <button className="rounded-full bg-white px-8 py-3.5 text-sm font-semibold text-indigo-600 shadow-lg hover:bg-indigo-50 transition-all hover:scale-105">
-                                Get Started
-                            </button>
-                            <button className="rounded-full border-2 border-white px-8 py-3.5 text-sm font-semibold text-white hover:bg-white/10 transition-all">
-                                Learn More
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+              </div>
+            </div>       
+              
     )
 }
